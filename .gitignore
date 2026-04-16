@@ -1,0 +1,5 @@
+.snapshots/
+.vscode/
+
+app/dist/
+app/node_modules/

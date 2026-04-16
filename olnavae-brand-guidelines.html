@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OL'Navae Brand Guidelines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #234B6E;
+        }
+        
+        /* Page Setup */
+        @page {
+            size: A4;
+            margin: 2cm 2cm 2.5cm 2cm;
+            @bottom-center {
+                content: counter(page);
+                font-family: 'Montserrat', sans-serif;
+                font-size: 9pt;
+                color: #8FA67B;
+            }
+        }
+        
+        @page :first {
+            margin: 0;
+            @bottom-center { content: none; }
+        }
+        
+        @page cover {
+            margin: 0;
+            @bottom-center { content: none; }
+        }
+        
+        /* Cover Page */
+        .cover {
+            page: cover;
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #F5F1E8 0%, #D4C9B8 100%);
+            page-break-after: always;
+        }
+        
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -50mm;
+            right: -30mm;
+            width: 150mm;
+            height: 150mm;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(143, 166, 123, 0.2) 0%, rgba(143, 166, 123, 0.05) 100%);
+        }
+        
+        .cover::after {
+            content: '';
+            position: absolute;
+            bottom: -40mm;
+            left: -40mm;
+            width: 120mm;
+            height: 120mm;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(35, 75, 110, 0.15) 0%, rgba(35, 75, 110, 0.05) 100%);
+        }
+        
+        .cover-decoration-1 {
+            position: absolute;
+            top: 30mm;
+            left: 20mm;
+            width: 40mm;
+            height: 1px;
+            background: #234B6E;
+        }
+        
+        .cover-decoration-2 {
+            position: absolute;
+            bottom: 40mm;
+            right: 20mm;
+            width: 60mm;
+            height: 1px;
+            background: #C67B5C;
+        }
+        
+        .cover-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 80%;
+            z-index: 10;
+        }
+        
+        .cover-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 48pt;
+            font-weight: 500;
+            color: #234B6E;
+            letter-spacing: 0.1em;
+            margin-bottom: 10mm;
+        }
+        
+        .cover-tagline {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10pt;
+            letter-spacing: 0.3em;
+            color: #8FA67B;
+            text-transform: uppercase;
+            margin-bottom: 30mm;
+        }
+        
+        .cover-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24pt;
+            font-weight: 400;
+            color: #234B6E;
+            margin-bottom: 15mm;
+        }
+        
+        .cover-meta {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9pt;
+            color: #234B6E;
+            opacity: 0.7;
+            line-height: 2;
+        }
+        
+        /* Content Styles */
+        .content {
+            padding-top: 0;
+        }
+        
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24pt;
+            font-weight: 500;
+            color: #234B6E;
+            margin-bottom: 15pt;
+            margin-top: 0;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16pt;
+            font-weight: 500;
+            color: #234B6E;
+            margin-top: 20pt;
+            margin-bottom: 10pt;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 12pt;
+            font-weight: 600;
+            color: #234B6E;
+            margin-top: 15pt;
+            margin-bottom: 8pt;
+            page-break-after: avoid;
+        }
+        
+        p {
+            margin-bottom: 10pt;
+            text-align: justify;
+            text-align-last: left;
+        }
+        
+        .section {
+            margin-bottom: 20pt;
+            page-break-inside: avoid;
+        }
+        
+        /* Color Palette */
+        .color-grid {
+            display: flex;
+            gap: 10pt;
+            margin: 15pt 0;
+            flex-wrap: wrap;
+        }
+        
+        .color-swatch {
+            width: 60pt;
+            text-align: center;
+        }
+        
+        .color-box {
+            width: 60pt;
+            height: 60pt;
+            border-radius: 4pt;
+            margin-bottom: 5pt;
+        }
+        
+        .color-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 7pt;
+            font-weight: 600;
+            color: #234B6E;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .color-hex {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 7pt;
+            color: #234B6E;
+            opacity: 0.6;
+        }
+        
+        .navy { background-color: #234B6E; }
+        .sage { background-color: #8FA67B; }
+        .cream { background-color: #F5F1E8; border: 1px solid #D4C9B8; }
+        .terracotta { background-color: #C67B5C; }
+        .sand { background-color: #D4C9B8; }
+        
+        /* Typography Section */
+        .type-sample {
+            background: #F5F1E8;
+            padding: 15pt;
+            border-radius: 4pt;
+            margin: 10pt 0;
+        }
+        
+        .type-primary {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24pt;
+            color: #234B6E;
+            margin-bottom: 5pt;
+        }
+        
+        .type-secondary {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14pt;
+            color: #234B6E;
+            margin-bottom: 5pt;
+        }
+        
+        .type-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 7pt;
+            letter-spacing: 0.2em;
+            color: #8FA67B;
+            text-transform: uppercase;
+            margin-bottom: 8pt;
+        }
+        
+        /* Logo Usage */
+        .logo-guideline {
+            display: flex;
+            gap: 20pt;
+            margin: 15pt 0;
+            align-items: center;
+        }
+        
+        .logo-box {
+            width: 80pt;
+            height: 80pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4pt;
+        }
+        
+        .logo-light { background-color: #234B6E; }
+        .logo-dark { background-color: #F5F1E8; border: 1px solid #D4C9B8; }
+        
+        .logo-text-sample {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 18pt;
+            color: #234B6E;
+            letter-spacing: 0.05em;
+        }
+        
+        .logo-text-light {
+            color: #F5F1E8;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15pt 0;
+            font-size: 9pt;
+            max-width: 100%;
+        }
+        
+        thead {
+            display: table-header-group;
+        }
+        
+        th {
+            border-top: 2pt solid #234B6E;
+            border-bottom: 1pt solid #234B6E;
+            padding: 8pt 5pt;
+            text-align: left;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #234B6E;
+        }
+        
+        td {
+            padding: 8pt 5pt;
+            border-bottom: 0.5pt solid #D4C9B8;
+            vertical-align: top;
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: 2pt solid #234B6E;
+        }
+        
+        tr {
+            page-break-inside: avoid;
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 10pt 0;
+            padding-left: 20pt;
+        }
+        
+        li {
+            margin-bottom: 5pt;
+        }
+        
+        /* Quote/Highlight */
+        .brand-quote {
+            border-left: 3pt solid #C67B5C;
+            padding-left: 15pt;
+            margin: 15pt 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 12pt;
+            font-style: italic;
+            color: #234B6E;
+        }
+        
+        /* Page Break */
+        .page-break {
+            page-break-before: always;
+        }
+        
+        /* Application Examples */
+        .application-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15pt;
+            margin: 15pt 0;
+        }
+        
+        .application-item {
+            background: #F5F1E8;
+            padding: 12pt;
+            border-radius: 4pt;
+        }
+        
+        .application-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 8pt;
+            letter-spacing: 0.15em;
+            color: #8FA67B;
+            text-transform: uppercase;
+            margin-bottom: 5pt;
+        }
+        
+        .application-desc {
+            font-size: 8pt;
+            color: #234B6E;
+        }
+        
+        /* Dos and Don'ts */
+        .guideline-row {
+            display: flex;
+            gap: 15pt;
+            margin: 10pt 0;
+        }
+        
+        .guideline-col {
+            flex: 1;
+        }
+        
+        .guideline-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 8pt;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 5pt;
+        }
+        
+        .do { color: #8FA67B; }
+        .dont { color: #C67B5C; }
+        
+        /* Footer note */
+        .footer-note {
+            margin-top: 30pt;
+            padding-top: 10pt;
+            border-top: 1pt solid #D4C9B8;
+            font-size: 7pt;
+            color: #234B6E;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="cover">
+        <div class="cover-decoration-1"></div>
+        <div class="cover-decoration-2"></div>
+        <div class="cover-content">
+            <div class="cover-logo">OL'NAVAE</div>
+            <div class="cover-tagline">Brand Identity Guidelines</div>
+            <div class="cover-title">Where Olive Groves Meet the Sea</div>
+            <div class="cover-meta">
+                <p>Mediterranean Elegance · Sustainable Luxury</p>
+                <p>Version 1.0 | 2024</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <h1>Brand Story</h1>
+        
+        <div class="section">
+            <h2>Our Origin</h2>
+            <p>OL'Navae draws its name from the ancient olive groves that line the Mediterranean coast and the navy blue waters that have carried traders, dreamers, and artisans for millennia. We are a contemporary clothing brand rooted in the belief that true elegance comes from simplicity and respect for the natural world.</p>
+            
+            <div class="brand-quote">
+                "Our collections are designed for the modern individual who moves through life with grace and intention—someone who appreciates quality over quantity."
+            </div>
+            
+            <p>Each piece is thoughtfully crafted using sustainable materials and ethical production methods, honoring both the artisans who create them and the environment that inspires them. Our designs transcend seasons and trends, created to be cherished for years to come.</p>
+        </div>
+
+        <div class="section">
+            <h2>Brand Positioning</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Brand Essence</strong></td>
+                        <td>Mediterranean elegance meets sustainable luxury</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Target Audience</strong></td>
+                        <td>Modern individuals aged 28-45 who value quality, sustainability, and timeless design</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Price Positioning</strong></td>
+                        <td>Premium contemporary (accessible luxury)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Key Values</strong></td>
+                        <td>Sustainability, Timelessness, Ethical Production, Mediterranean Soul</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Brand Voice</strong></td>
+                        <td>Elegant, warm, intentional, understated</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h1>Visual Identity</h1>
+        
+        <div class="section">
+            <h2>Color Palette</h2>
+            <p>Our color palette draws directly from the Mediterranean landscape—the deep navy of the sea, the sage of olive leaves, the warm terracotta of coastal cliffs, and the cream and sand of sun-bleached shores.</p>
+            
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-box navy"></div>
+                    <div class="color-name">Navy</div>
+                    <div class="color-hex">#234B6E</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box sage"></div>
+                    <div class="color-name">Sage</div>
+                    <div class="color-hex">#8FA67B</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box cream"></div>
+                    <div class="color-name">Cream</div>
+                    <div class="color-hex">#F5F1E8</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box terracotta"></div>
+                    <div class="color-name">Terracotta</div>
+                    <div class="color-hex">#C67B5C</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-box sand"></div>
+                    <div class="color-name">Sand</div>
+                    <div class="color-hex">#D4C9B8</div>
+                </div>
+            </div>
+            
+            <h3>Color Usage Guidelines</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Primary Use</th>
+                        <th>Secondary Use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Navy</strong></td>
+                        <td>Primary text, headers, logo</td>
+                        <td>Buttons, accents, footer backgrounds</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sage</strong></td>
+                        <td>Secondary accents, labels, icons</td>
+                        <td>Highlights, hover states</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cream</strong></td>
+                        <td>Primary background</td>
+                        <td>Cards, content areas</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Terracotta</strong></td>
+                        <td>Accent color, CTAs</td>
+                        <td>Decorative elements, borders</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sand</strong></td>
+                        <td>Secondary backgrounds</td>
+                        <td>Borders, dividers, subtle accents</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="section">
+            <h2>Typography</h2>
+            <p>Our typography pairing reflects the balance between timeless elegance and modern simplicity. Cormorant Garamond brings classical sophistication, while Montserrat provides clean, contemporary readability.</p>
+            
+            <div class="type-sample">
+                <div class="type-label">Primary Typeface</div>
+                <div class="type-primary">Cormorant Garamond</div>
+                <p style="font-family: 'Cormorant Garamond', serif; font-size: 11pt; margin-top: 5pt;">Elegant · Timeless · Sophisticated</p>
+                <p style="font-family: 'Cormorant Garamond', serif; font-size: 14pt; margin-top: 8pt;">Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm</p>
+            </div>
+            
+            <div class="type-sample">
+                <div class="type-label">Secondary Typeface</div>
+                <div class="type-secondary">Montserrat</div>
+                <p style="font-family: 'Montserrat', sans-serif; font-size: 9pt; margin-top: 5pt;">Modern · Clean · Versatile</p>
+                <p style="font-family: 'Montserrat', sans-serif; font-size: 10pt; margin-top: 8pt; font-weight: 300;">Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm</p>
+            </div>
+            
+            <h3>Type Hierarchy</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Font</th>
+                        <th>Size</th>
+                        <th>Weight</th>
+                        <th>Usage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>H1</td>
+                        <td>Cormorant Garamond</td>
+                        <td>24pt</td>
+                        <td>500</td>
+                        <td>Page titles, major sections</td>
+                    </tr>
+                    <tr>
+                        <td>H2</td>
+                        <td>Cormorant Garamond</td>
+                        <td>16pt</td>
+                        <td>500</td>
+                        <td>Section headings</td>
+                    </tr>
+                    <tr>
+                        <td>H3</td>
+                        <td>Cormorant Garamond</td>
+                        <td>12pt</td>
+                        <td>600</td>
+                        <td>Subsection headings</td>
+                    </tr>
+                    <tr>
+                        <td>Body</td>
+                        <td>Montserrat</td>
+                        <td>10pt</td>
+                        <td>400</td>
+                        <td>Paragraph text</td>
+                    </tr>
+                    <tr>
+                        <td>Caption</td>
+                        <td>Montserrat</td>
+                        <td>8pt</td>
+                        <td>400</td>
+                        <td>Labels, metadata</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="section">
+            <h2>Logo Usage</h2>
+            <p>The OL'Navae logo features elegant serif typography with an integrated olive branch element within the letter 'O', symbolizing our connection to Mediterranean heritage and natural beauty.</p>
+            
+            <h3>Logo Versions</h3>
+            <div class="logo-guideline">
+                <div class="logo-box logo-dark">
+                    <span class="logo-text-sample">OL'NAVAE</span>
+                </div>
+                <div class="logo-box logo-light">
+                    <span class="logo-text-sample logo-text-light">OL'NAVAE</span>
+                </div>
+            </div>
+            
+            <h3>Clear Space & Minimum Size</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Guideline</th>
+                        <th>Specification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Clear Space</strong></td>
+                        <td>Minimum space equal to the height of the letter 'O' on all sides</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Minimum Digital Size</strong></td>
+                        <td>80px width</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Minimum Print Size</strong></td>
+                        <td>20mm width</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Logo Don'ts</h3>
+            <div class="guideline-row">
+                <div class="guideline-col">
+                    <div class="guideline-label dont">Don't</div>
+                    <ul style="font-size: 9pt;">
+                        <li>Stretch or distort the logo</li>
+                        <li>Change the logo colors</li>
+                        <li>Add effects (shadows, gradients)</li>
+                        <li>Place on busy backgrounds</li>
+                        <li>Rotate or tilt the logo</li>
+                    </ul>
+                </div>
+                <div class="guideline-col">
+                    <div class="guideline-label do">Do</div>
+                    <ul style="font-size: 9pt;">
+                        <li>Maintain aspect ratio</li>
+                        <li>Use approved color variations</li>
+                        <li>Keep logo clean and flat</li>
+                        <li>Ensure sufficient contrast</li>
+                        <li>Use logo horizontally</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h1>Brand Voice & Messaging</h1>
+        
+        <div class="section">
+            <h2>Voice Characteristics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Characteristic</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Elegant</strong></td>
+                        <td>Refined without being pretentious</td>
+                        <td>"Crafted with intention" vs. "Luxury fashion"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Warm</strong></td>
+                        <td>Inviting and approachable</td>
+                        <td>"Join our journey" vs. "Subscribe now"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Intentional</strong></td>
+                        <td>Thoughtful and purposeful</td>
+                        <td>"Designed to last" vs. "New arrivals"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Understated</strong></td>
+                        <td>Confident without boasting</td>
+                        <td>"Quality you can feel" vs. "The best quality"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>Key Messages</h2>
+            <div class="brand-quote">
+                "Where olive groves meet the sea"
+            </div>
+            <div class="brand-quote">
+                "Mediterranean elegance, sustainable luxury"
+            </div>
+            <div class="brand-quote">
+                "Designed for the modern individual who moves through life with grace"
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Brand Values</h2>
+            
+            <h3>Sustainability</h3>
+            <p>We use organic, recycled, and responsibly sourced materials in every garment we create. From fabric selection to packaging, we minimize our environmental footprint at every step.</p>
+            
+            <h3>Timeless Design</h3>
+            <p>Our pieces transcend seasons and trends, designed to be cherished for years to come. We believe in creating wardrobe staples that never go out of style.</p>
+            
+            <h3>Ethical Production</h3>
+            <p>We partner with artisans and factories that uphold fair wages and safe working conditions. Every person in our supply chain is treated with dignity and respect.</p>
+            
+            <h3>Mediterranean Soul</h3>
+            <p>Every design is infused with the relaxed elegance and natural beauty of coastal living. We capture the essence of Mediterranean lifestyle in every piece.</p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h1>Application Guidelines</h1>
+        
+        <div class="section">
+            <h2>Digital Applications</h2>
+            <div class="application-grid">
+                <div class="application-item">
+                    <div class="application-title">Website</div>
+                    <div class="application-desc">Cream background, Navy text, Sage accents. Clean layouts with generous whitespace.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Social Media</div>
+                    <div class="application-desc">Natural photography, muted tones, consistent filters. Logo in corner or watermark.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Email</div>
+                    <div class="application-desc">Simple layouts, clear hierarchy. Navy headers, cream background, minimal decoration.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Digital Ads</div>
+                    <div class="application-desc">Product-focused imagery, minimal text. Logo always present, clear CTAs.</div>
+                </div>
+            </div>
+            
+            <h2>Print Applications</h2>
+            <div class="application-grid">
+                <div class="application-item">
+                    <div class="application-title">Business Cards</div>
+                    <div class="application-desc">Cream or white stock, Navy logo. Minimal information, elegant typography.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Hang Tags</div>
+                    <div class="application-desc">Recycled kraft paper, Navy or Terracotta print. Include care instructions.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Packaging</div>
+                    <div class="application-desc">Recyclable materials, minimal branding. Tissue paper in Sage or Cream.</div>
+                </div>
+                <div class="application-item">
+                    <div class="application-title">Lookbooks</div>
+                    <div class="application-desc">Matte paper, generous imagery. Editorial layout with clean typography.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Photography Style</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Guideline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Lighting</strong></td>
+                        <td>Natural, soft, golden hour preferred. Avoid harsh artificial light.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Setting</strong></td>
+                        <td>Coastal, Mediterranean-inspired locations. Olive groves, beaches, rustic architecture.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Color Grading</strong></td>
+                        <td>Warm, muted tones. Enhanced greens and blues. Avoid oversaturation.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Models</strong></td>
+                        <td>Natural, confident, relaxed poses. Minimal makeup, natural hair.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Composition</strong></td>
+                        <td>Clean, uncluttered. Negative space encouraged. Product always in focus.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-note">
+            <p>OL'Navae Brand Guidelines Version 1.0 | For internal and partner use only. All rights reserved.</p>
+            <p>For questions or additional assets, contact: brand@olnavae.com</p>
+        </div>
+    </div>
+</body>
+</html>
