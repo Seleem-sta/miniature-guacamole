@@ -18,6 +18,7 @@ This backend provides a multi-provider inventory search and stock status service
 - `POST /webhooks/inventory`
 - `POST /api/auth/signup`
 - `POST /api/auth/signin`
+- `POST /api/auth/microsoft`
 - `GET /api/auth/me`
 - `GET /api/admin/users` (admin only)
 
@@ -85,3 +86,14 @@ Frontend can sign in with Microsoft using Entra ID with:
 - `VITE_ENTRA_CLIENT_ID`
 - `VITE_ENTRA_TENANT_ID`
 - `VITE_ENTRA_ADMIN_EMAILS` (comma-separated emails that should map to admin role in UI)
+
+Backend verification for Microsoft sign-in requires:
+- `ENTRA_TENANT_ID`
+- `ENTRA_CLIENT_ID`
+- `ENTRA_ADMIN_EMAILS` (comma-separated admin emails, enforced server-side)
+
+Flow:
+1. Frontend gets Microsoft ID token via MSAL.
+2. Frontend sends ID token to `POST /api/auth/microsoft`.
+3. Backend verifies token signature/issuer/audience against Entra JWKS.
+4. Backend issues its own JWT session + role-enforced user profile.

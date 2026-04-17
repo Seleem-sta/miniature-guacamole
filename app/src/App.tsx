@@ -94,10 +94,6 @@ interface AdminUserRecord {
 const AUTH_API_URL = (import.meta.env.VITE_AUTH_API_URL as string | undefined) ?? (import.meta.env.VITE_STOCK_API_URL as string | undefined);
 const ENTRA_CLIENT_ID = import.meta.env.VITE_ENTRA_CLIENT_ID as string | undefined;
 const ENTRA_TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID as string | undefined;
-const ENTRA_ADMIN_EMAILS = (import.meta.env.VITE_ENTRA_ADMIN_EMAILS as string | undefined)
-  ?.split(',')
-  .map((item) => item.trim().toLowerCase())
-  .filter(Boolean) ?? [];
 
 const DEFAULT_FILTERS: FilterState = {
   maxPrice: 'all',
@@ -2176,19 +2172,24 @@ function AuthView({
         return;
       }
 
-      const email = String(account.username || '').toLowerCase();
-      const isAdmin = ENTRA_ADMIN_EMAILS.includes(email);
+      if (!AUTH_API_URL) {
+        setError('Auth API is not configured. Set VITE_AUTH_API_URL in your .env file.');
+        return;
+      }
 
-      onAuthSuccess(
-        {
-          id: account.homeAccountId,
-          name: account.name || account.username || 'Microsoft User',
-          email: account.username || 'unknown@contoso.com',
-          styleFocus: 'enterprise polish',
-          role: isAdmin ? 'admin' : 'user',
-        },
-        response.idToken,
-      );
+      const backendRes = await fetch(`${AUTH_API_URL.replace(/\/$/, '')}/api/auth/microsoft`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: response.idToken }),
+      });
+
+      const backendData = await backendRes.json() as { ok?: boolean; user?: ActiveUser; token?: string; message?: string };
+      if (!backendRes.ok || !backendData.ok || !backendData.user || !backendData.token) {
+        setError(backendData.message || 'Microsoft auth failed on server verification.');
+        return;
+      }
+
+      onAuthSuccess(backendData.user, backendData.token);
     } catch {
       setError('Microsoft sign-in failed.');
     } finally {

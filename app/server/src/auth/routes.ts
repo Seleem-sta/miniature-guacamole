@@ -4,6 +4,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { z } from 'zod';
 import { config } from '../config.js';
 
@@ -33,6 +34,10 @@ const signinSchema = z.object({
   password: z.string().min(1),
 });
 
+const microsoftAuthSchema = z.object({
+  idToken: z.string().min(10),
+});
+
 interface AuthTokenPayload {
   sub: string;
   email: string;
@@ -44,6 +49,13 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+const entraAdminEmailSet = new Set(
+  config.entraAdminEmails
+    .split(',')
+    .map((entry) => normalizeEmail(entry))
+    .filter(Boolean),
+);
+
 function sanitizeUser(record: StoredUserRecord) {
   return {
     id: record.id,
@@ -54,6 +66,10 @@ function sanitizeUser(record: StoredUserRecord) {
     createdAt: record.createdAt,
   };
 }
+
+const jwks = config.entraTenantId
+  ? createRemoteJWKSet(new URL(`https://login.microsoftonline.com/${config.entraTenantId}/discovery/v2.0/keys`))
+  : null;
 
 async function ensureUsersFile(): Promise<void> {
   await fs.mkdir(path.dirname(USERS_FILE), { recursive: true });
@@ -194,6 +210,62 @@ export function registerAuthRoutes(router: Router): void {
     }
 
     res.json({ ok: true, user: sanitizeUser(user), token: signToken(user) });
+  });
+
+  router.post('/api/auth/microsoft', async (req: Request, res: Response) => {
+    const parsed = microsoftAuthSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ ok: false, message: 'Invalid Microsoft auth payload.' });
+      return;
+    }
+
+    if (!config.entraTenantId || !config.entraClientId || !jwks) {
+      res.status(500).json({ ok: false, message: 'Microsoft auth is not configured on the server.' });
+      return;
+    }
+
+    try {
+      const { payload } = await jwtVerify(parsed.data.idToken, jwks, {
+        audience: config.entraClientId,
+        issuer: [
+          `https://login.microsoftonline.com/${config.entraTenantId}/v2.0`,
+          `https://sts.windows.net/${config.entraTenantId}/`,
+        ],
+      });
+
+      const email = normalizeEmail(String(payload.preferred_username ?? payload.email ?? ''));
+      const name = String(payload.name ?? payload.preferred_username ?? 'Microsoft User');
+
+      if (!email) {
+        res.status(401).json({ ok: false, message: 'Microsoft token missing email identity.' });
+        return;
+      }
+
+      const users = await readUsers();
+      let user = users.find((entry) => entry.email === email);
+
+      if (!user) {
+        const role: UserRole = entraAdminEmailSet.has(email) ? 'admin' : 'user';
+        user = {
+          id: randomUUID(),
+          name,
+          email,
+          styleFocus: 'enterprise polish',
+          role,
+          passwordHash: '',
+          createdAt: new Date().toISOString(),
+        };
+        users.push(user);
+        await writeUsers(users);
+      } else if (entraAdminEmailSet.has(email) && user.role !== 'admin') {
+        user.role = 'admin';
+        await writeUsers(users);
+      }
+
+      res.json({ ok: true, user: sanitizeUser(user), token: signToken(user) });
+    } catch {
+      res.status(401).json({ ok: false, message: 'Microsoft token verification failed.' });
+    }
   });
 
   router.get('/api/auth/me', async (req: Request, res: Response) => {
