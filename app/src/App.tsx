@@ -120,6 +120,7 @@ function AppContent() {
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [styleAnalysis, setStyleAnalysis] = useState<string>('');
+  const [noCompromiseMode, setNoCompromiseMode] = useState(true);
   const abortRef = useRef<AbortController | null>(null);
 
   const featuredProducts = getFeaturedProducts();
@@ -156,7 +157,12 @@ function AppContent() {
     abortRef.current = controller;
 
     setAssistantLoading(true);
-    setAssistantResult(buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage));
+    setAssistantResult(
+      applyNoCompromiseBadge(
+        buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage),
+        noCompromiseMode,
+      ),
+    );
 
     const budget = extractBudget(nextPrompt.toLowerCase());
 
@@ -164,21 +170,46 @@ function AppContent() {
       .then((webResults) => {
         if (controller.signal.aborted) return;
         if (webResults.length === 0) {
-          setAssistantResult(buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage));
+          setAssistantResult(
+            applyNoCompromiseBadge(
+              buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage),
+              noCompromiseMode,
+            ),
+          );
           return;
         }
         const mapped = webResults.map(searchResultToProduct);
-        setAssistantResult(buildConciergeResultFromProducts(nextPrompt, mapped, currentUser, !!uploadedImage));
+        const finalProducts = noCompromiseMode ? optimizeNoCompromiseProducts(mapped, budget) : mapped;
+        if (finalProducts.length === 0) {
+          setAssistantResult(
+            applyNoCompromiseBadge(
+              buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage),
+              noCompromiseMode,
+            ),
+          );
+          return;
+        }
+        setAssistantResult(
+          applyNoCompromiseBadge(
+            buildConciergeResultFromProducts(nextPrompt, finalProducts, currentUser, !!uploadedImage),
+            noCompromiseMode,
+          ),
+        );
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setAssistantResult(buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage));
+          setAssistantResult(
+            applyNoCompromiseBadge(
+              buildLocalConciergeResult(nextPrompt, currentUser, !!uploadedImage),
+              noCompromiseMode,
+            ),
+          );
         }
       })
       .finally(() => {
         if (!controller.signal.aborted) setAssistantLoading(false);
       });
-  }, [currentUser, uploadedImage]);
+  }, [currentUser, noCompromiseMode, uploadedImage]);
 
   const openProduct = (productId: string) => {
     navigateTo('product', productId);
@@ -336,6 +367,8 @@ function AppContent() {
               setStyleAnalysis(analyzeStyleFromImage(image));
             }}
             styleAnalysis={styleAnalysis}
+            noCompromiseMode={noCompromiseMode}
+            onNoCompromiseModeChange={setNoCompromiseMode}
           />
         )}
         {view === 'stock' && (
@@ -1137,6 +1170,8 @@ function AssistantView({
   uploadedImage,
   onImageUpload,
   styleAnalysis,
+  noCompromiseMode,
+  onNoCompromiseModeChange,
 }: {
   input: string;
   loading: boolean;
@@ -1148,6 +1183,8 @@ function AssistantView({
   uploadedImage: string | null;
   onImageUpload: (image: string) => void;
   styleAnalysis: string;
+  noCompromiseMode: boolean;
+  onNoCompromiseModeChange: (enabled: boolean) => void;
 }) {
   const submitPrompt = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1175,6 +1212,22 @@ function AssistantView({
           <p className="mt-3 text-sm leading-7 text-navy/70">
             This assistant interprets what the customer wants and ranks official-source products by material, occasion, budget, and delivery fit.
           </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="text-xs tracking-[0.2em] text-terracotta">AI MODE</span>
+            <button
+              type="button"
+              onClick={() => onNoCompromiseModeChange(!noCompromiseMode)}
+              className={`rounded-full px-4 py-2 text-xs tracking-[0.14em] transition-colors ${
+                noCompromiseMode ? 'bg-navy text-cream' : 'border border-navy/15 bg-white text-navy'
+              }`}
+            >
+              {noCompromiseMode ? 'NO-COMPROMISE ON' : 'STANDARD MODE'}
+            </button>
+            {noCompromiseMode && (
+              <p className="text-xs text-navy/70">Strict quality ranking, stock discipline, and delivery bias active.</p>
+            )}
+          </div>
 
           <form onSubmit={submitPrompt} className="mt-6 space-y-4">
             <textarea
@@ -2448,6 +2501,38 @@ function buildConciergeReasons(prompt: string, items: Product[], budget: number 
   return reasons.length > 0 ? reasons : [
     '✨ Expertly curated: These pieces match your style request with quality and value.',
   ];
+}
+
+function optimizeNoCompromiseProducts(items: Product[], budget: number | null): Product[] {
+  const filtered = items.filter((item) => item.availability !== 'Out of stock' && item.deliveryBusinessDays <= 6);
+  const qualitySignal = (item: Product) => {
+    let score = 0;
+    const text = `${item.material} ${item.tags.join(' ')}`.toLowerCase();
+    if (/(silk|linen|wool|cashmere|merino|cotton)/.test(text)) score += 16;
+    if (/(tailored|structured|premium|timeless|elevated|classic)/.test(text)) score += 12;
+    if (item.availability === 'In stock') score += 10;
+    if (budget) {
+      score += item.price <= budget ? 8 : -6;
+    }
+    score += Math.max(0, 7 - item.deliveryBusinessDays);
+    return score;
+  };
+
+  return [...filtered]
+    .sort((a, b) => qualitySignal(b) - qualitySignal(a))
+    .slice(0, 18);
+}
+
+function applyNoCompromiseBadge(result: ConciergeResult, enabled: boolean): ConciergeResult {
+  if (!enabled) return result;
+  return {
+    ...result,
+    title: `No-Compromise AI · ${result.title}`,
+    reasons: [
+      'No-compromise mode enforced: quality-first materials, in-stock preference, and delivery discipline.',
+      ...result.reasons,
+    ],
+  };
 }
 
 function scoreProduct(product: Product, prompt: string, budget: number | null, currentUser: ActiveUser | null = null, hasVisualStyle: boolean = false) {
