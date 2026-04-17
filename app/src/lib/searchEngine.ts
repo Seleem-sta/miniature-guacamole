@@ -23,6 +23,7 @@ export interface SearchResult {
 
 const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY as string | undefined;
 const STOCK_API_URL = import.meta.env.VITE_STOCK_API_URL as string | undefined;
+const STOCK_API_TOKEN = import.meta.env.VITE_STOCK_API_TOKEN as string | undefined;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -135,9 +136,14 @@ async function searchViaStockAggregator(query: string, budget: number | null): P
   };
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (STOCK_API_TOKEN) {
+      headers.Authorization = `Bearer ${STOCK_API_TOKEN}`;
+    }
+
     const res = await fetch(`${STOCK_API_URL.replace(/\/$/, '')}/api/inventory/search`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(5000),
     });

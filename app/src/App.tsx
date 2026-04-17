@@ -4,7 +4,6 @@ import {
   Bot,
   Check,
   Clock3,
-  ExternalLink,
   LogOut,
   Menu,
   Minus,
@@ -192,6 +191,7 @@ function AppContent() {
         name: product.name,
         brand: product.brand,
         merchant: product.merchant,
+        description: product.description,
         price: product.price,
         image: product.image,
         size,
@@ -228,7 +228,7 @@ function AppContent() {
 
   const handleSignOut = () => {
     setCurrentUser(null);
-    navigateTo('home');
+    navigateTo('auth');
   };
 
   const handleSubmitOrder = (customerName: string, shippingMethod: ShippingMethod) => {
@@ -248,6 +248,25 @@ function AppContent() {
     clearCart();
     navigateTo('success');
   };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen overflow-x-hidden font-body" style={{background:'linear-gradient(160deg,#f7f3ec 0%,#ede7da 100%)',color:'#0f2237'}}>
+        <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-6 rounded-[1.5rem] border border-terracotta/20 bg-terracotta/5 px-5 py-4 text-sm text-navy/80">
+            Please sign in or create an account to access catalog, concierge, and checkout features.
+          </div>
+          <AuthView
+            authMode={authMode}
+            onAuthModeChange={setAuthMode}
+            onAuthSuccess={handleAuthSuccess}
+            users={users}
+            setUsers={setUsers}
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden font-body" style={{background:'linear-gradient(160deg,#f7f3ec 0%,#ede7da 100%)',color:'#0f2237'}}>
@@ -1075,15 +1094,10 @@ function ProductView({
               {addedToCart ? 'Added to cart' : 'Add to cart'}
             </button>
 
-            <a
-              href={product.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-navy/15 px-5 py-3 text-sm text-navy transition-colors hover:border-navy/25 hover:bg-cream"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Open source
-            </a>
+            <div className="inline-flex items-center gap-2 rounded-full border border-navy/15 bg-cream px-5 py-3 text-sm text-navy/80">
+              <Store className="h-4 w-4" />
+              Source reference saved in request
+            </div>
           </div>
 
           <div className="rounded-[1.75rem] p-6" style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(16px)',border:'1px solid rgba(15,34,55,0.08)',boxShadow:'0 4px 24px rgba(15,34,55,0.07),inset 0 1px 0 rgba(255,255,255,0.8)'}}>
@@ -1905,21 +1919,18 @@ function SuccessView({
         </div>
 
         <div className="mt-8 rounded-[1.75rem] bg-cream p-6 text-left">
-          <p className="text-sm tracking-[0.24em] text-terracotta">SOURCE LINKS SAVED</p>
+          <p className="text-sm tracking-[0.24em] text-terracotta">PRODUCT DETAILS SAVED</p>
           <div className="mt-4 space-y-3">
             {order.items.map((item) => (
-              <a
+              <div
                 key={`${item.id}-${item.size}-${item.color}`}
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm text-navy transition-colors hover:bg-white/80"
+                className="rounded-2xl bg-white px-4 py-3 text-sm text-navy"
               >
-                <span>
+                <p className="font-medium">
                   {item.name} · {item.color} · {item.size}
-                </span>
-                <ExternalLink className="h-4 w-4 text-terracotta" />
-              </a>
+                </p>
+                <p className="mt-1 text-xs text-navy/65">{item.description ?? 'Description unavailable for this source item.'}</p>
+              </div>
             ))}
           </div>
         </div>

@@ -9,6 +9,8 @@ This backend provides a multi-provider inventory search and stock status service
 - Webhook endpoint for real-time inventory updates
 - Brand/site filtering support
 - Out-of-stock demotion and explicit availability states
+- Private API bearer-token mode
+- Rate limiting + security headers middleware
 
 ## API
 - `GET /health`
@@ -42,10 +44,11 @@ This backend provides a multi-provider inventory search and stock status service
 
 ## Run
 1. Copy `.env.example` to `.env` and set provider credentials.
-2. Install dependencies:
+2. Set `API_BEARER_TOKEN` to a long random secret.
+3. Install dependencies:
    - `cd server`
    - `npm install`
-3. Start server:
+4. Start server:
    - `npm run dev`
 
 Server default URL: `http://localhost:8080`
@@ -63,3 +66,8 @@ Payload:
   "checkedAt": "2026-04-17T12:00:00.000Z"
 }
 ```
+
+## Security
+- Add header on every search request:
+  - `Authorization: Bearer <API_BEARER_TOKEN>`
+- Keep `.env` secret values out of source control.

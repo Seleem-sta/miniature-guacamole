@@ -10,6 +10,7 @@ function required(key: string, fallback = ''): string {
 export const config = {
   port: Number(process.env.PORT ?? 8080),
   allowedOrigin: required('ALLOWED_ORIGIN', 'http://localhost:5175'),
+  apiBearerToken: required('API_BEARER_TOKEN', ''),
   cacheTtlMs: Number(process.env.CACHE_TTL_MS ?? 120_000),
   pollIntervalMs: Number(process.env.POLL_INTERVAL_MS ?? 30_000),
   webhookSharedSecret: required('WEBHOOK_SHARED_SECRET', ''),

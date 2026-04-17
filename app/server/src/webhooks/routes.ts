@@ -1,4 +1,5 @@
 import type { Request, Response, Router } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { StockCache } from '../cache/stockCache.js';
 import { config } from '../config.js';
@@ -9,10 +10,17 @@ const payloadSchema = z.object({
   checkedAt: z.string().optional(),
 });
 
+function safeEquals(left: string, right: string): boolean {
+  const leftBuf = Buffer.from(left);
+  const rightBuf = Buffer.from(right);
+  if (leftBuf.length !== rightBuf.length) return false;
+  return timingSafeEqual(leftBuf, rightBuf);
+}
+
 export function registerWebhookRoutes(router: Router, cache: StockCache): void {
   router.post('/webhooks/inventory', (req: Request, res: Response) => {
     const signature = String(req.headers['x-webhook-secret'] ?? '');
-    if (config.webhookSharedSecret && signature !== config.webhookSharedSecret) {
+    if (config.webhookSharedSecret && !safeEquals(signature, config.webhookSharedSecret)) {
       res.status(401).json({ ok: false, message: 'Invalid webhook signature.' });
       return;
     }
