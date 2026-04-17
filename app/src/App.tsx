@@ -29,24 +29,22 @@ import {
 import { searchProductsOnline, searchResultToProduct } from './lib/searchEngine';
 import './App.css';
 
-type View = 'home' | 'catalog' | 'product' | 'assistant' | 'stock' | 'cart' | 'auth' | 'checkout' | 'success';
+type View = 'home' | 'catalog' | 'product' | 'assistant' | 'stock' | 'admin' | 'cart' | 'auth' | 'checkout' | 'success';
 type AuthMode = 'signin' | 'signup';
 type DeliveryPreference = 'all' | 'fast';
 type PriceFilter = 'all' | 'under-100' | 'under-125';
 type AvailabilityFilter = 'all' | 'available';
 type ShippingMethod = 'standard' | 'expedited';
 
-interface StoredUser {
-  name: string;
-  email: string;
-  password: string;
-  styleFocus: string;
-}
+type UserRole = 'admin' | 'user';
 
 interface ActiveUser {
+  id: string;
   name: string;
   email: string;
   styleFocus: string;
+  role: UserRole;
+  createdAt?: string;
 }
 
 interface FilterState {
@@ -84,6 +82,17 @@ interface StockInventoryItem {
   source: string;
 }
 
+interface AdminUserRecord {
+  id: string;
+  name: string;
+  email: string;
+  styleFocus: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+const AUTH_API_URL = (import.meta.env.VITE_AUTH_API_URL as string | undefined) ?? (import.meta.env.VITE_STOCK_API_URL as string | undefined);
+
 const DEFAULT_FILTERS: FilterState = {
   maxPrice: 'all',
   delivery: 'all',
@@ -110,8 +119,8 @@ function AppContent() {
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
   const [assistantInput, setAssistantInput] = useState(DEFAULT_PROMPT);
   const [_assistantPrompt, setAssistantPrompt] = useState(DEFAULT_PROMPT);
-  const [users, setUsers] = usePersistentState<StoredUser[]>('olnavae.users', []);
   const [currentUser, setCurrentUser] = usePersistentState<ActiveUser | null>('olnavae.current-user', null);
+  const [authToken, setAuthToken] = usePersistentState<string | null>('olnavae.auth-token', null);
   const [submittedOrder, setSubmittedOrder] = useState<SubmittedOrder | null>(null);
   const deferredSearchInput = useDeferredValue(searchInput);
   const { addToCart, clearCart, items, totalItems, totalPrice } = useCart();
@@ -252,14 +261,16 @@ function AppContent() {
     navigateTo('checkout');
   };
 
-  const handleAuthSuccess = (user: ActiveUser) => {
-    setCurrentUser(user);
-    navigateTo('catalog');
-  };
-
   const handleSignOut = () => {
     setCurrentUser(null);
+    setAuthToken(null);
     navigateTo('auth');
+  };
+
+  const handleAuthSuccessWithToken = (user: ActiveUser, token: string) => {
+    setCurrentUser(user);
+    setAuthToken(token);
+    navigateTo('catalog');
   };
 
   const handleSubmitOrder = (customerName: string, shippingMethod: ShippingMethod) => {
@@ -290,9 +301,7 @@ function AppContent() {
           <AuthView
             authMode={authMode}
             onAuthModeChange={setAuthMode}
-            onAuthSuccess={handleAuthSuccess}
-            users={users}
-            setUsers={setUsers}
+            onAuthSuccess={handleAuthSuccessWithToken}
           />
         </main>
       </div>
@@ -315,11 +324,13 @@ function AppContent() {
         onSearchChange={setSearchInput}
         onAssistant={() => runAssistant(assistantInput)}
         onStock={() => navigateTo('stock')}
+        onAdmin={() => navigateTo('admin')}
         onAuth={() => navigateTo('auth')}
         onSignOut={handleSignOut}
         onCart={() => navigateTo('cart')}
         searchValue={searchInput}
         totalItems={totalItems}
+        isAdmin={currentUser.role === 'admin'}
       />
 
       <main>
@@ -377,6 +388,9 @@ function AppContent() {
             onBack={() => navigateTo('catalog')}
           />
         )}
+        {view === 'admin' && currentUser.role === 'admin' && (
+          <AdminView token={authToken} />
+        )}
         {view === 'cart' && (
           <CartView
             currentUser={currentUser}
@@ -389,9 +403,7 @@ function AppContent() {
           <AuthView
             authMode={authMode}
             onAuthModeChange={setAuthMode}
-            onAuthSuccess={handleAuthSuccess}
-            users={users}
-            setUsers={setUsers}
+            onAuthSuccess={handleAuthSuccessWithToken}
           />
         )}
         {view === 'checkout' && (
@@ -432,6 +444,7 @@ function Navigation({
   isMenuOpen,
   onAssistant,
   onStock,
+  onAdmin,
   onAuth,
   onCart,
   onCategorySelect,
@@ -442,12 +455,14 @@ function Navigation({
   onSignOut,
   searchValue,
   totalItems,
+  isAdmin,
 }: {
   categories: typeof categories;
   currentUser: ActiveUser | null;
   isMenuOpen: boolean;
   onAssistant: () => void;
   onStock: () => void;
+  onAdmin: () => void;
   onAuth: () => void;
   onCart: () => void;
   onCategorySelect: (categoryId: string) => void;
@@ -458,6 +473,7 @@ function Navigation({
   onSignOut: () => void;
   searchValue: string;
   totalItems: number;
+  isAdmin: boolean;
 }) {
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -506,6 +522,15 @@ function Navigation({
               <Store className="h-4 w-4" />
               Live Stock
             </button>
+            {isAdmin && (
+              <button
+                onClick={onAdmin}
+                className="inline-flex items-center gap-2 rounded-full border border-navy/15 bg-white/80 px-4 py-2 text-sm text-navy transition-colors hover:bg-white"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Admin
+              </button>
+            )}
           </div>
 
           <div className="ml-auto hidden items-center gap-3 md:flex">
@@ -594,6 +619,15 @@ function Navigation({
               <Store className="h-4 w-4" />
               Live Stock
             </button>
+            {isAdmin && (
+              <button
+                onClick={onAdmin}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-navy/15 bg-white px-4 py-3 text-sm text-navy"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Admin
+              </button>
+            )}
             <div className="space-y-2">
               {navCategories.map((category) => (
                 <button
@@ -1996,18 +2030,101 @@ function SuccessView({
   );
 }
 
+function AdminView({
+  token,
+}: {
+  token: string | null;
+}) {
+  const [users, setUsers] = useState<AdminUserRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const run = async () => {
+      if (!AUTH_API_URL || !token) {
+        setError('Missing auth API or token.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${AUTH_API_URL.replace(/\/$/, '')}/api/admin/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json() as { ok?: boolean; users?: AdminUserRecord[]; message?: string };
+        if (!res.ok || !data.ok || !Array.isArray(data.users)) {
+          setError(data.message || 'Unable to load admin users.');
+          setLoading(false);
+          return;
+        }
+
+        setUsers(data.users);
+      } catch {
+        setError('Unable to reach admin service.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void run();
+  }, [token]);
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="rounded-[2rem] p-6 sm:p-8" style={{background:'rgba(255,255,255,0.9)',backdropFilter:'blur(20px)',border:'1px solid rgba(15,34,55,0.08)',boxShadow:'0 10px 30px rgba(15,34,55,0.08)'}}>
+        <p className="text-sm tracking-[0.28em] text-terracotta">ADMIN</p>
+        <h1 className="mt-2 font-display text-3xl sm:text-4xl">Users and roles</h1>
+        <p className="mt-3 text-sm text-navy/70">Manage visibility of registered users and admin role assignment state from backend records.</p>
+
+        {loading && <p className="mt-6 text-sm text-navy/70">Loading users...</p>}
+        {error && <p className="mt-6 rounded-2xl bg-terracotta/10 px-4 py-3 text-sm text-terracotta">{error}</p>}
+
+        {!loading && !error && (
+          <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-navy/10">
+            <table className="w-full bg-white text-left text-sm">
+              <thead className="bg-cream text-xs tracking-[0.2em] text-navy/70">
+                <tr>
+                  <th className="px-4 py-3">NAME</th>
+                  <th className="px-4 py-3">EMAIL</th>
+                  <th className="px-4 py-3">ROLE</th>
+                  <th className="px-4 py-3">STYLE FOCUS</th>
+                  <th className="px-4 py-3">CREATED</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="border-t border-navy/10">
+                    <td className="px-4 py-3 text-navy">{user.name}</td>
+                    <td className="px-4 py-3 text-navy/70">{user.email}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-3 py-1 text-xs ${user.role === 'admin' ? 'bg-navy text-cream' : 'bg-cream text-navy'}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-navy/70">{user.styleFocus}</td>
+                    <td className="px-4 py-3 text-navy/60">{new Date(user.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AuthView({
   authMode,
   onAuthModeChange,
   onAuthSuccess,
-  setUsers,
-  users,
 }: {
   authMode: AuthMode;
   onAuthModeChange: (mode: AuthMode) => void;
-  onAuthSuccess: (user: ActiveUser) => void;
-  setUsers: (users: StoredUser[]) => void;
-  users: StoredUser[];
+  onAuthSuccess: (user: ActiveUser, token: string) => void;
 }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -2017,10 +2134,16 @@ function AuthView({
     styleFocus: '',
   });
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const submitAuth = (event: FormEvent<HTMLFormElement>) => {
+  const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
+
+    if (!AUTH_API_URL) {
+      setError('Auth API is not configured. Set VITE_AUTH_API_URL in your .env file.');
+      return;
+    }
 
     if (authMode === 'signup') {
       if (formData.password.length < 6) {
@@ -2032,43 +2155,41 @@ function AuthView({
         setError('Passwords do not match.');
         return;
       }
+    }
 
-      if (users.some((user) => user.email.toLowerCase() === formData.email.toLowerCase())) {
-        setError('That email already has a local account on this device.');
+    setSubmitting(true);
+    try {
+      const endpoint = authMode === 'signup' ? '/api/auth/signup' : '/api/auth/signin';
+      const payload = authMode === 'signup'
+        ? {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            styleFocus: formData.styleFocus,
+          }
+        : {
+            email: formData.email,
+            password: formData.password,
+          };
+
+      const res = await fetch(`${AUTH_API_URL.replace(/\/$/, '')}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json() as { ok?: boolean; user?: ActiveUser; token?: string; message?: string };
+      if (!res.ok || !data.ok || !data.user || !data.token) {
+        setError(data.message || 'Authentication failed.');
         return;
       }
 
-      const nextUser: StoredUser = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        styleFocus: formData.styleFocus || 'polished minimal looks',
-      };
-
-      setUsers([...users, nextUser]);
-      onAuthSuccess({
-        name: nextUser.name,
-        email: nextUser.email,
-        styleFocus: nextUser.styleFocus,
-      });
-      return;
+      onAuthSuccess(data.user, data.token);
+    } catch {
+      setError('Unable to reach authentication service.');
+    } finally {
+      setSubmitting(false);
     }
-
-    const existingUser = users.find(
-      (user) =>
-        user.email.toLowerCase() === formData.email.toLowerCase() && user.password === formData.password,
-    );
-
-    if (!existingUser) {
-      setError('No local account matched that email and password.');
-      return;
-    }
-
-    onAuthSuccess({
-      name: existingUser.name,
-      email: existingUser.email,
-      styleFocus: existingUser.styleFocus,
-    });
   };
 
   return (
@@ -2082,7 +2203,7 @@ function AuthView({
           </p>
 
           <div className="mt-8 grid gap-4">
-            <TrustPill icon={<User className="h-4 w-4" />} title="Local auth" detail="Stored in this browser for the prototype." />
+            <TrustPill icon={<User className="h-4 w-4" />} title="Backend auth" detail="Credentials are handled by the server API." />
             <TrustPill icon={<ShoppingBag className="h-4 w-4" />} title="Reusable checkout" detail="Customer details flow into the order request." />
             <TrustPill icon={<Bot className="h-4 w-4" />} title="Better AI context" detail="Your saved style focus can steer recommendations." />
           </div>
@@ -2164,8 +2285,8 @@ function AuthView({
 
             {error && <div className="rounded-2xl bg-terracotta/10 px-4 py-3 text-sm text-terracotta">{error}</div>}
 
-            <button type="submit" className="w-full rounded-full bg-navy px-6 py-3 text-sm text-cream">
-              {authMode === 'signup' ? 'Create account' : 'Sign in'}
+            <button type="submit" disabled={submitting} className="w-full rounded-full bg-navy px-6 py-3 text-sm text-cream disabled:opacity-70 disabled:cursor-not-allowed">
+              {submitting ? 'Submitting...' : authMode === 'signup' ? 'Create account' : 'Sign in'}
             </button>
           </form>
         </section>

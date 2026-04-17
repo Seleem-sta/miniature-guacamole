@@ -12,6 +12,7 @@ import { ShopifyProvider } from './providers/shopify.js';
 import { AffiliateFeedProvider } from './providers/affiliateFeed.js';
 import { startPolling } from './polling/scheduler.js';
 import { registerWebhookRoutes } from './webhooks/routes.js';
+import { registerAuthRoutes } from './auth/routes.js';
 
 const app = express();
 const cache = new StockCache(config.cacheTtlMs);
@@ -88,6 +89,7 @@ app.post('/api/inventory/search', searchRateLimiter, requirePrivateApiToken, asy
 
 const router = express.Router();
 registerWebhookRoutes(router, cache);
+registerAuthRoutes(router);
 app.use(router);
 
 startPolling(providers, cache, config.pollIntervalMs);
