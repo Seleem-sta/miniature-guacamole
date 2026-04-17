@@ -16,6 +16,10 @@ This backend provides a multi-provider inventory search and stock status service
 - `GET /health`
 - `POST /api/inventory/search`
 - `POST /webhooks/inventory`
+- `POST /api/auth/signup`
+- `POST /api/auth/signin`
+- `GET /api/auth/me`
+- `GET /api/admin/users` (admin only)
 
 ### Search payload
 ```json
@@ -71,3 +75,13 @@ Payload:
 - Add header on every search request:
   - `Authorization: Bearer <API_BEARER_TOKEN>`
 - Keep `.env` secret values out of source control.
+- Auth notes:
+  - Passwords are hashed with bcrypt.
+  - JWT sessions are signed via `AUTH_JWT_SECRET`.
+  - Optional bootstrap admin account: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`.
+
+## Microsoft Entra (optional)
+Frontend can sign in with Microsoft using Entra ID with:
+- `VITE_ENTRA_CLIENT_ID`
+- `VITE_ENTRA_TENANT_ID`
+- `VITE_ENTRA_ADMIN_EMAILS` (comma-separated emails that should map to admin role in UI)

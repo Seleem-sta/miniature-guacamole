@@ -92,6 +92,12 @@ interface AdminUserRecord {
 }
 
 const AUTH_API_URL = (import.meta.env.VITE_AUTH_API_URL as string | undefined) ?? (import.meta.env.VITE_STOCK_API_URL as string | undefined);
+const ENTRA_CLIENT_ID = import.meta.env.VITE_ENTRA_CLIENT_ID as string | undefined;
+const ENTRA_TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID as string | undefined;
+const ENTRA_ADMIN_EMAILS = (import.meta.env.VITE_ENTRA_ADMIN_EMAILS as string | undefined)
+  ?.split(',')
+  .map((item) => item.trim().toLowerCase())
+  .filter(Boolean) ?? [];
 
 const DEFAULT_FILTERS: FilterState = {
   maxPrice: 'all',
@@ -2136,6 +2142,60 @@ function AuthView({
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const handleMicrosoftSignIn = async () => {
+    setError('');
+
+    if (!ENTRA_CLIENT_ID || !ENTRA_TENANT_ID) {
+      setError('Microsoft sign-in is not configured yet. Add Entra client and tenant IDs in .env.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { PublicClientApplication } = await import('@azure/msal-browser');
+      const app = new PublicClientApplication({
+        auth: {
+          clientId: ENTRA_CLIENT_ID,
+          authority: `https://login.microsoftonline.com/${ENTRA_TENANT_ID}`,
+          redirectUri: window.location.origin,
+        },
+        cache: {
+          cacheLocation: 'localStorage',
+        },
+      });
+
+      await app.initialize();
+      const response = await app.loginPopup({
+        scopes: ['openid', 'profile', 'email'],
+        prompt: 'select_account',
+      });
+
+      const account = response.account;
+      if (!account) {
+        setError('Microsoft sign-in did not return an account.');
+        return;
+      }
+
+      const email = String(account.username || '').toLowerCase();
+      const isAdmin = ENTRA_ADMIN_EMAILS.includes(email);
+
+      onAuthSuccess(
+        {
+          id: account.homeAccountId,
+          name: account.name || account.username || 'Microsoft User',
+          email: account.username || 'unknown@contoso.com',
+          styleFocus: 'enterprise polish',
+          role: isAdmin ? 'admin' : 'user',
+        },
+        response.idToken,
+      );
+    } catch {
+      setError('Microsoft sign-in failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
@@ -2287,6 +2347,15 @@ function AuthView({
 
             <button type="submit" disabled={submitting} className="w-full rounded-full bg-navy px-6 py-3 text-sm text-cream disabled:opacity-70 disabled:cursor-not-allowed">
               {submitting ? 'Submitting...' : authMode === 'signup' ? 'Create account' : 'Sign in'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleMicrosoftSignIn}
+              disabled={submitting}
+              className="w-full rounded-full border border-navy/20 bg-white px-6 py-3 text-sm text-navy transition-colors hover:bg-cream disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Please wait...' : 'Sign in with Microsoft'}
             </button>
           </form>
         </section>
